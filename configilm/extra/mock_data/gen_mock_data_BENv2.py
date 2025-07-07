@@ -134,14 +134,27 @@ def gen_extra_metadata_file(
 
 
 if __name__ == "__main__":
-    lmdb_file = "/home/leonard/data/BigEarthNet-V2/BigEarthNet-V2-LMDB"
-    new_lmdb_file = "./BENv2/BigEarthNet-V2-LMDB"
+    try:
+        datapath = {
+            'lmdb_file': Path(sys.argv[1]).resolve(),
+            'metadata_file': Path(sys.argv[2]).resolve(),
+            'metadata_extra_file': Path(sys.argv[3]).resolve(),
+            'outdir': Path(sys.argv[4]).resolve(),
+        }
+        for key, path in datapath.items():
+            if key != 'outdir':
+                assert path.is_file(), f"Input file not found or not a file: {path}"
+    except Exception as e:
+        sys.exit(f'\nAn error occured: {e}.\n\nUsage: python gen_mock_data_BENv2.py /path/to/lmdb_file /path/to/metadata_file.parquet /path/to/metadata_extra_file.parquet /path/to/outdir/\n')
 
-    metadata_file = "/home/leonard/data/BigEarthNet-V2/metadata.parquet"
-    new_metadata_file = "./BENv2/metadata.parquet"
+    lmdb_file = datapath['lmdb_file']
+    new_lmdb_file = outdir / "BENv2" / "BigEarthNet-V2-LMDB"
 
-    metadata_extra_file = "/home/leonard/data/BigEarthNet-V2/metadata_for_patches_with_snow_cloud_or_shadow.parquet"
-    new_metadata_extra_file = "./BENv2/metadata_for_patches_with_snow_cloud_or_shadow.parquet"
+    metadata_file = datapath['metadata_file']
+    new_metadata_file = outdir / "BENv2" / "metadata.parquet"
+
+    metadata_extra_file = datapath['metadata_extra_file']
+    new_metadata_extra_file = outdir / "BENv2" / "metadata_for_patches_with_snow_cloud_or_shadow.parquet"
 
     gen_metadata_subset(from_file=metadata_file, to_file=new_metadata_file, patches_per_split=6)
     gen_extra_metadata_file(from_file=metadata_extra_file, to_file=new_metadata_extra_file, patches_per_version=1)
