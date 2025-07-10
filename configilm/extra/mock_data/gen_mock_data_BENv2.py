@@ -149,8 +149,14 @@ if __name__ == "__main__":
             else:
                 if key != 'outdir':
                     assert path.is_file(), f"Input file not found or not a file: {path}"
+        if len(sys.argv) > 5:
+            patches_per_split = int(sys.argv[5])
+            patches_per_version = int(sys.argv[6])
+        else:
+            patches_per_split = 6
+            patches_per_version = 1
     except Exception as e:
-        sys.exit(f'\nAn error occured: {e}.\n\nUsage: python gen_mock_data_BENv2.py /path/to/lmdb_file /path/to/metadata_file.parquet /path/to/metadata_extra_file.parquet /path/to/outdir/\n')
+        sys.exit(f'\nAn error occured: {e}.\n\nUsage: python gen_mock_data_BENv2.py /path/to/lmdb_file /path/to/metadata_file.parquet /path/to/metadata_extra_file.parquet /path/to/outdir/ patches_per_split patches_per_version\n')
 
     lmdb_file = datapath['lmdb_file'].as_posix()
     new_lmdb_file = (datapath['outdir'] / "BENv2" / "BigEarthNet-V2-LMDB").as_posix()
@@ -161,8 +167,8 @@ if __name__ == "__main__":
     metadata_extra_file = datapath['metadata_extra_file']
     new_metadata_extra_file = datapath['outdir'] / "BENv2" / "metadata_for_patches_with_snow_cloud_or_shadow.parquet"
 
-    gen_metadata_subset(from_file=metadata_file, to_file=new_metadata_file, patches_per_split=600)
-    gen_extra_metadata_file(from_file=metadata_extra_file, to_file=new_metadata_extra_file, patches_per_version=100)
+    gen_metadata_subset(from_file=metadata_file, to_file=new_metadata_file, patches_per_split=patches_per_split)
+    gen_extra_metadata_file(from_file=metadata_extra_file, to_file=new_metadata_extra_file, patches_per_version=patches_per_version)
 
     # read new metadata
     metadata = pd.read_parquet(new_metadata_file)
