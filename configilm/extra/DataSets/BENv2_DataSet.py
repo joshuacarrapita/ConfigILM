@@ -83,6 +83,8 @@ class BENv2DataSet(Dataset):
         self,
         data_dirs: Mapping[str, Union[str, Path]],
         split: Optional[str] = None,
+        bagging: bool = False,
+        seed: int = 42,
         transform: Optional[Callable] = None,
         max_len: Optional[int] = None,
         img_size: tuple = (3, 120, 120),
@@ -106,6 +108,18 @@ class BENv2DataSet(Dataset):
             "test". If None is provided, all splits are used.
 
             :default: None
+
+        :param bagging: If true, the dataset will be generated in a bagging 
+            manner; splitting the whole dataset into only train and test splits,
+            random sampling from the train split to generate the train dataset
+            using the out-of-bag samples as the validation set and testing on 
+            the previously chosen test split.
+
+            :default: False
+
+        :param seed: Random seed for bagging for reproducibility, default is 42.
+
+            :default: 42
 
         :param transform: A callable that is used to transform the images after
             loading them. If None is provided, no transformation is applied.
@@ -160,8 +174,26 @@ class BENv2DataSet(Dataset):
         if not include_snowy:
             # remove all rows with contains_seasonal_snow
             metadata = metadata[~metadata["contains_seasonal_snow"]]
-        if split is not None:
+        if split is not None and bagging is not True:
             metadata = metadata[metadata["split"] == split]
+        if split is not None and bagging is True:
+            if split == "train" or split == "validation":
+                # remove test samples
+                metadata = metadata[metadata["split"] != "test"]
+
+                if split == "train":
+                    # if split is train random sample from whole dataset
+                    metadata = metadata.sample(n=metadata.size, replace=True, random_state=seed)
+                    # and set the split column accordingly
+                    metadata["split"] = "train"
+                else: 
+                    # if split is validation retrieve only out-of-bag samples
+                    metadata_in_bag = metadata.sample(n=metadata.size, replace=True, random_state=seed)
+                    metadata = metadata_in_bag.merge(metadata, how='right', on="patch_id")
+                    # and set the split column accordingly
+                    metadata["split"] = "validation"
+            else: 
+                metadata = metadata[metadata["split"] == split]
         self.patches = metadata["patch_id"].tolist()
 
         Messages.info(f"    {len(self.patches)} patches indexed")
