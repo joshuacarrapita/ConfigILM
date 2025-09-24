@@ -44,6 +44,8 @@ class BENv2DataModule(pl.LightningDataModule):
         shuffle: Optional[bool] = None,
         max_len: Optional[int] = None,
         pin_memory: Optional[bool] = None,
+        bagging: bool = False,
+        seed: int = 42,
         patch_prefilter: Optional[Callable[[str], bool]] = None,
         train_transforms: Optional[Callable] = None,
         eval_transforms: Optional[Callable] = None,
@@ -91,6 +93,18 @@ class BENv2DataModule(pl.LightningDataModule):
 
             :default: None
 
+        :param bagging: If true, the dataset will be generated in a bagging 
+            manner; splitting the whole dataset into only train and test splits,
+            random sampling from the train split to generate the train dataset
+            using the out-of-bag samples as the validation set and testing on 
+            the previously chosen test split.
+
+            :default: False
+
+        :param seed: Random seed for bagging for reproducibility, default is 42.
+
+            :default: 42
+
         :param patch_prefilter: A callable that is used to filter out images. If None is
             provided, no filtering is applied. The callable should take a string as input
             and return a boolean. If the callable returns True, the image is included in
@@ -118,6 +132,8 @@ class BENv2DataModule(pl.LightningDataModule):
         self.num_workers_dataloader = num_workers_dataloader
         self.max_len = max_len
         self.patch_prefilter = patch_prefilter
+        self.bagging = bagging
+        self.seed = seed
 
         self.pin_memory = pin_memory
         if self.pin_memory is None:
@@ -169,6 +185,8 @@ class BENv2DataModule(pl.LightningDataModule):
             self.train_ds = BENv2DataSet(
                 self.data_dirs,
                 split="train",
+                bagging=self.bagging,
+                seed=self.seed,
                 transform=self.train_transform,
                 max_len=self.max_len,
                 img_size=self.img_size,
@@ -177,6 +195,8 @@ class BENv2DataModule(pl.LightningDataModule):
             self.val_ds = BENv2DataSet(
                 self.data_dirs,
                 split="validation",
+                bagging=self.bagging,
+                seed=self.seed,
                 transform=self.transform,
                 max_len=self.max_len,
                 img_size=self.img_size,
@@ -244,3 +264,12 @@ class BENv2DataModule(pl.LightningDataModule):
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
         )
+
+    def save_dataset(self, type: Optional[str] = None , filepath: Path):
+        if type == None or type == "train":
+            torch.save(self.train_ds, (filepath / "train_ds"))
+        if type == None or type == "validation":
+            torch.save(self.val_ds, (filepath / "validation_ds"))
+        if type == None or type == "test":
+            torch.save(self.test_ds, (filepath / "test_ds"))
+

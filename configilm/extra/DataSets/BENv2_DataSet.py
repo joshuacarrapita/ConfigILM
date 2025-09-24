@@ -244,6 +244,9 @@ class BENv2DataSet(Dataset):
             return None
         return self.patches.index(patchname)
 
+    def get_patches(self) -> Optional[List[str]]:
+        return self.patches
+
     def __len__(self):
         return len(self.patches)
 
