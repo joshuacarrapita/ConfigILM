@@ -267,9 +267,9 @@ class BENv2DataModule(pl.LightningDataModule):
 
     def save_dataset(self, type: Optional[str] = None , filepath: Path):
         if type == None or type == "train":
-            torch.save(self.train_ds, (filepath / "train_ds"))
+            torch.save(self.train_ds, (filepath / "train_ds.dataset"))
         if type == None or type == "validation":
-            torch.save(self.val_ds, (filepath / "validation_ds"))
+            torch.save(self.val_ds, (filepath / "validation_ds.dataset"))
         if type == None or type == "test":
-            torch.save(self.test_ds, (filepath / "test_ds"))
+            torch.save(self.test_ds, (filepath / "test_ds.dataset"))
 
