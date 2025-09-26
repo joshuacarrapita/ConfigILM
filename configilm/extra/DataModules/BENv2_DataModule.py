@@ -265,11 +265,11 @@ class BENv2DataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
         )
 
-    def save_dataset(self, type: Optional[str] = None , filepath: Path):
+    def save_metadata(self, filepath: Path, type: Optional[str] = None):
         if type == None or type == "train":
-            torch.save(self.train_ds, (filepath / "train_ds.dataset"))
+            self.train_ds.get_metadata().to_parquet((filepath / "train_ds.parquet"))
         if type == None or type == "validation":
-            torch.save(self.val_ds, (filepath / "validation_ds.dataset"))
+            self.val_ds.get_metadata().to_parquet((filepath / "val_ds.parquet"))
         if type == None or type == "test":
-            torch.save(self.test_ds, (filepath / "test_ds.dataset"))
+            self.test_ds.get_metadata().to_parquet((filepath / "test_ds.parquet"))
 

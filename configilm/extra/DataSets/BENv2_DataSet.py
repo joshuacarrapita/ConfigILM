@@ -180,20 +180,31 @@ class BENv2DataSet(Dataset):
             if split == "train" or split == "validation":
                 # remove test samples
                 metadata = metadata[metadata["split"] != "test"]
-
+                if __debug__: 
+                    print(f'Length metadata: {len(metadata)}')
                 if split == "train":
                     # if split is train random sample from whole dataset
-                    metadata = metadata.sample(n=metadata.size, replace=True, random_state=seed)
+                    metadata = metadata.sample(n=len(metadata), replace=True, random_state=seed)
                     # and set the split column accordingly
                     metadata["split"] = "train"
+                    Messages.info(f"    {len(metadata)} training patches generated with bagging")
                 else: 
                     # if split is validation retrieve only out-of-bag samples
-                    metadata_in_bag = metadata.sample(n=metadata.size, replace=True, random_state=seed)
-                    metadata = metadata_in_bag.merge(metadata, how='right', on="patch_id")
+                    metadata_in_bag = metadata.sample(n=len(metadata), replace=True, random_state=seed)
+                    metadata = pd.concat([metadata, metadata_in_bag])
+                    metadata = metadata.drop_duplicates(subset='patch_id', keep=False)
                     # and set the split column accordingly
                     metadata["split"] = "validation"
+                    Messages.info(f"    {len(metadata)} validation patches generated with bagging")
             else: 
                 metadata = metadata[metadata["split"] == split]
+                Messages.info(f"    {len(metadata)} test patches generated with bagging")
+        if __debug__: 
+            pd.set_option('display.max_rows', 20)
+            pd.set_option('display.max_columns', None)
+            pd.set_option('display.width', 1000)
+            print(metadata)
+        self.metadata = metadata
         self.patches = metadata["patch_id"].tolist()
 
         Messages.info(f"    {len(self.patches)} patches indexed")
@@ -244,8 +255,8 @@ class BENv2DataSet(Dataset):
             return None
         return self.patches.index(patchname)
 
-    def get_patches(self) -> Optional[List[str]]:
-        return self.patches
+    def get_metadata(self):
+        return self.metadata
 
     def __len__(self):
         return len(self.patches)
