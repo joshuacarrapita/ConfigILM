@@ -216,7 +216,7 @@ class BENv2DataModule(pl.LightningDataModule):
             )
             sample_info_msg += f"  Total test samples: {len(self.test_ds):8,d}"
 
-        if stage == "predict":
+        if stage == "predict" or stage is None:
             self.pred_ds = BENv2DataSet(
                 self.data_dirs,
                 split="validation",
@@ -226,8 +226,7 @@ class BENv2DataModule(pl.LightningDataModule):
                 max_len=self.max_len,
                 img_size=self.img_size,
             )
-            sample_info_msg += f"  Total training samples: {len(self.train_ds):8,d}"
-            sample_info_msg += f"  Total validation samples: {len(self.val_ds):8,d}"
+            sample_info_msg += f"  Total prediction samples: {len(self.pred_ds):8,d}"
 
         Messages.info(sample_info_msg)
 
