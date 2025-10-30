@@ -31,6 +31,7 @@ class BENv2DataModule(pl.LightningDataModule):
     train_ds: Union[None, BENv2DataSet] = None
     val_ds: Union[None, BENv2DataSet] = None
     test_ds: Union[None, BENv2DataSet] = None
+    pred_ds: Union[None, BENv2DataSet] = None
 
     train_transforms: Optional[Callable] = None
     eval_transforms: Optional[Callable] = None
@@ -216,7 +217,17 @@ class BENv2DataModule(pl.LightningDataModule):
             sample_info_msg += f"  Total test samples: {len(self.test_ds):8,d}"
 
         if stage == "predict":
-            raise NotImplementedError("Predict stage not implemented")
+            self.pred_ds = BENv2DataSet(
+                self.data_dirs,
+                split="validation",
+                bagging=self.bagging,
+                seed=self.seed,
+                transform=self.transform,
+                max_len=self.max_len,
+                img_size=self.img_size,
+            )
+            sample_info_msg += f"  Total training samples: {len(self.train_ds):8,d}"
+            sample_info_msg += f"  Total validation samples: {len(self.val_ds):8,d}"
 
         Messages.info(sample_info_msg)
 
@@ -265,6 +276,21 @@ class BENv2DataModule(pl.LightningDataModule):
             pin_memory=self.pin_memory,
         )
 
+    def predict_dataloader(self):
+        """
+        Create a Dataloader according to the specification in the `__init__` call.
+        Uses the prediction set and expects it to be set (e.g. via `setup()` call)
+
+        :return: torch DataLoader for the test set
+        """
+        return DataLoader(
+            self.pred_ds,
+            batch_size=self.batch_size,
+            shuffle=False if self.shuffle is None else self.shuffle,
+            num_workers=self.num_workers_dataloader,
+            pin_memory=self.pin_memory,
+        )
+
     def save_metadata(self, filepath: Path, type: Optional[str] = None):
         if type == None or type == "train":
             self.train_ds.get_metadata().to_parquet((filepath / "train_ds.parquet"))
@@ -272,4 +298,3 @@ class BENv2DataModule(pl.LightningDataModule):
             self.val_ds.get_metadata().to_parquet((filepath / "val_ds.parquet"))
         if type == None or type == "test":
             self.test_ds.get_metadata().to_parquet((filepath / "test_ds.parquet"))
-
