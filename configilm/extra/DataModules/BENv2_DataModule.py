@@ -5,6 +5,7 @@ Original Paper of Image Data:
 TO BE PUBLISHED
 https://bigearth.net/
 """
+import math
 from pathlib import Path
 from typing import Callable
 from typing import Mapping
@@ -45,6 +46,7 @@ class BENv2DataModule(pl.LightningDataModule):
         shuffle: Optional[bool] = None,
         max_len: Optional[int] = None,
         pin_memory: Optional[bool] = None,
+        prefetch_factor: Optional[Int] = None,
         bagging: bool = False,
         seed: int = 42,
         patch_prefilter: Optional[Callable[[str], bool]] = None,
@@ -132,6 +134,7 @@ class BENv2DataModule(pl.LightningDataModule):
         self.img_size = img_size
         self.num_workers_dataloader = num_workers_dataloader
         self.max_len = max_len
+        self.prefetch_factor = prefetch_factor
         self.patch_prefilter = patch_prefilter
         self.bagging = bagging
         self.seed = seed
@@ -204,6 +207,10 @@ class BENv2DataModule(pl.LightningDataModule):
             )
             sample_info_msg += f"  Total training samples: {len(self.train_ds):8,d}"
             sample_info_msg += f"  Total validation samples: {len(self.val_ds):8,d}"
+            pf_train=math.ceil(len(self.train_ds)/(batch_size*num_workers_dataloader))
+            pf_val=math.ceil(len(self.val_ds)/(batch_size*num_workers_dataloader))
+            print(f'Prefetch Factor Train: {pf_train}.'}
+            print(f'Prefetch Factor Val: {pf_val}.'}
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
@@ -215,6 +222,8 @@ class BENv2DataModule(pl.LightningDataModule):
                 img_size=self.img_size,
             )
             sample_info_msg += f"  Total test samples: {len(self.test_ds):8,d}"
+            pf_test=math.ceil(len(self.test_ds)/(batch_size*num_workers_dataloader))
+            print(f'Prefetch Factor Test: {pf_test}.'}
 
         if stage == "predict" or stage is None:
             self.pred_ds = BENv2DataSet(
@@ -227,6 +236,8 @@ class BENv2DataModule(pl.LightningDataModule):
                 img_size=self.img_size,
             )
             sample_info_msg += f"  Total prediction samples: {len(self.pred_ds):8,d}"
+            pf_pred=math.ceil(len(self.pred_ds)/(batch_size*num_workers_dataloader))
+            print(f'Prefetch Factor Pred: {pred_ds}.'}
 
         Messages.info(sample_info_msg)
 
@@ -243,6 +254,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=True if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.train_ds)/(batch_size*num_workers_dataloader)),
         )
 
     def val_dataloader(self):
@@ -258,6 +270,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.val_ds)/(batch_size*num_workers_dataloader)),
         )
 
     def test_dataloader(self):
@@ -273,6 +286,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.test_ds)/(batch_size*num_workers_dataloader)),
         )
 
     def predict_dataloader(self):
@@ -288,6 +302,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.pred_ds)/(batch_size*num_workers_dataloader)),
         )
 
     def save_metadata(self, filepath: Path, type: Optional[str] = None):
