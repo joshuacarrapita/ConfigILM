@@ -30,9 +30,13 @@ from configilm.util import Messages
 class BENv2DataModule(pl.LightningDataModule):
     num_classes = 19
     train_ds: Union[None, BENv2DataSet] = None
+    train_pf: Optional[int] = None
     val_ds: Union[None, BENv2DataSet] = None
+    val_pf: Optional[int] = None
     test_ds: Union[None, BENv2DataSet] = None
+    test_pf: Optional[int] = None
     pred_ds: Union[None, BENv2DataSet] = None
+    pred_pf: Optional[int] = None
 
     train_transforms: Optional[Callable] = None
     eval_transforms: Optional[Callable] = None
@@ -207,10 +211,17 @@ class BENv2DataModule(pl.LightningDataModule):
             )
             sample_info_msg += f"  Total training samples: {len(self.train_ds):8,d}"
             sample_info_msg += f"  Total validation samples: {len(self.val_ds):8,d}"
-            pf_train=math.ceil(len(self.train_ds)/(self.batch_size*self.num_workers_dataloader))
-            pf_val=math.ceil(len(self.val_ds)/(self.batch_size*self.num_workers_dataloader))
-            print(f'Prefetch Factor Train: len(train_ds)({len(self.train_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {pf_train}.')
-            print(f'Prefetch Factor Validation: len(val_ds)({len(self.val_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {pf_val}.')
+
+            if self.prefetch_factor is not None:
+                self.train_pf = self.prefetch_factor
+                self.val_pf = self.prefetch_factor
+                print(f'Prefetch factor train: {self.train_pf}')
+                print(f'Prefetch factor validation: {self.val_pf}')
+            else:
+                self.train_pf=math.ceil(len(self.train_ds)/(self.batch_size*self.num_workers_dataloader))
+                self.val_pf=math.ceil(len(self.val_ds)/(self.batch_size*self.num_workers_dataloader))
+                print(f'Prefetch factor train: len(train_ds)({len(self.train_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {self.train_pf}.')
+                print(f'Prefetch factor validation: len(val_ds)({len(self.val_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {self.val_pf}.')
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
@@ -222,8 +233,13 @@ class BENv2DataModule(pl.LightningDataModule):
                 img_size=self.img_size,
             )
             sample_info_msg += f"  Total test samples: {len(self.test_ds):8,d}"
-            pf_test=math.ceil(len(self.test_ds)/(self.batch_size*self.num_workers_dataloader))
-            print(f'Prefetch Factor Test: len(test_ds)({len(self.test_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {pf_test}.')
+
+            if self.prefetch_factor is not None:
+                self.test_pf = self.prefetch_factor
+                print(f'Prefetch factor test: {self.test_pf}')
+            else:
+                self.test_pf=math.ceil(len(self.test_ds)/(self.batch_size*self.num_workers_dataloader))
+                print(f'Prefetch factor test: len(test_ds)({len(self.test_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {self.test_pf}.')
 
         if stage == "predict" or stage is None:
             self.pred_ds = BENv2DataSet(
@@ -236,8 +252,12 @@ class BENv2DataModule(pl.LightningDataModule):
                 img_size=self.img_size,
             )
             sample_info_msg += f"  Total prediction samples: {len(self.pred_ds):8,d}"
-            pf_pred=math.ceil(len(self.pred_ds)/(self.batch_size*self.num_workers_dataloader))
-            print(f'Prefetch Factor Prediction: len(pred_ds)({len(self.pred_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {pf_pred}.')
+            if self.prefetch_factor is not None:
+                self.pred_pf = self.prefetch_factor
+                print(f'Prefetch factor prediction: {self.pred_pf}')
+            else:
+                self.pred_pf=math.ceil(len(self.pred_ds)/(self.batch_size*self.num_workers_dataloader))
+                print(f'Prefetch factor prediction: len(pred_ds)({len(self.pred_ds)})/batch_size({self.batch_size})*num_workers({self.num_workers_dataloader}) = {self.pred_pf}.')
 
         Messages.info(sample_info_msg)
 
@@ -254,7 +274,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=True if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
-            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.train_ds)/(self.batch_size*self.num_workers_dataloader)),
+            prefetch_factor=self.train_pf,
         )
 
     def val_dataloader(self):
@@ -270,7 +290,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
-            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.val_ds)/(self.batch_size*self.num_workers_dataloader)),
+            prefetch_factor=self.val_pf,
         )
 
     def test_dataloader(self):
@@ -286,7 +306,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
-            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.test_ds)/(self.batch_size*self.num_workers_dataloader)),
+            prefetch_factor=self.test_pf
         )
 
     def predict_dataloader(self):
@@ -302,7 +322,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
-            prefetch_factor=self.prefetch_factor if self.prefetch_factor is not None else math.ceil(len(self.pred_ds)/(self.batch_size*self.num_workers_dataloader)),
+            prefetch_factor=self.pred_pf
         )
 
     def save_metadata(self, filepath: Path, type: Optional[str] = None):
