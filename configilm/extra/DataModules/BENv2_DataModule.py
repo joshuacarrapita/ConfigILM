@@ -297,3 +297,5 @@ class BENv2DataModule(pl.LightningDataModule):
             self.val_ds.get_metadata().to_parquet((filepath / "val_ds.parquet"))
         if type == None or type == "test":
             self.test_ds.get_metadata().to_parquet((filepath / "test_ds.parquet"))
+        if type == None or type == "predict":
+            self.pred_ds.get_metadata().to_parquet((filepath / "pred_ds.parquet"))
