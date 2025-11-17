@@ -243,6 +243,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=True if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            persistent_workers=True,
         )
 
     def val_dataloader(self):
@@ -258,6 +259,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
@@ -273,6 +275,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            persistent_workers=True,
         )
 
     def predict_dataloader(self):
@@ -288,6 +291,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            persistent_workers=True,
         )
 
     def save_metadata(self, filepath: Path, type: Optional[str] = None):
