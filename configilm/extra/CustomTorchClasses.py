@@ -26,6 +26,12 @@ class MyRotateTransform:
         angle = random.choice(self.angles)
         return TF.rotate(x, angle)
 
+    def __str__(self):
+        return f'MyRotateTransform(angles={self.angles})'
+
+    def __repr__(self):
+        return "configilm.extra.CustomTorchClasses.MyRotateTransform()"
+
 
 class MyGaussianNoise:
     """
@@ -49,6 +55,12 @@ class MyGaussianNoise:
             out = out.to(dtype)
 
         return out
+
+    def __str__(self):
+        return f'MyGaussianNoise(sigma={self.sigma})'
+
+    def __repr__(self):
+        return "configilm.extra.CustomTorchClasses.MyGaussianNoise()"
 
 
 # copied from pl_bolts but modified due to an import error in pl_bolts
