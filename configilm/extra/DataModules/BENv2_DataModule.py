@@ -42,6 +42,7 @@ class BENv2DataModule(pl.LightningDataModule):
         batch_size: int = 16,
         img_size: tuple = (3, 120, 120),
         num_workers_dataloader: int = 4,
+        prefetch_factor: int = 2,
         shuffle: Optional[bool] = None,
         max_len: Optional[int] = None,
         pin_memory: Optional[bool] = None,
@@ -78,6 +79,10 @@ class BENv2DataModule(pl.LightningDataModule):
         :param num_workers_dataloader: The number of workers to use for the dataloaders.
 
             :default: 4
+
+        :param prefetch_factor: The number of batches loaded in advance by each worker.
+
+            :default: 2
 
         :param shuffle: Whether to shuffle the data. If None is provided, the data is shuffled
             for training and not shuffled for validation and test.
@@ -131,6 +136,7 @@ class BENv2DataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.img_size = img_size
         self.num_workers_dataloader = num_workers_dataloader
+        self.prefetch_factor = prefetch_factor
         self.max_len = max_len
         self.patch_prefilter = patch_prefilter
         self.bagging = bagging
@@ -243,6 +249,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=True if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor,
             persistent_workers=True,
         )
 
@@ -259,6 +266,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor,
             persistent_workers=True,
         )
 
@@ -275,6 +283,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor,
             persistent_workers=True,
         )
 
@@ -291,6 +300,7 @@ class BENv2DataModule(pl.LightningDataModule):
             shuffle=False if self.shuffle is None else self.shuffle,
             num_workers=self.num_workers_dataloader,
             pin_memory=self.pin_memory,
+            prefetch_factor=self.prefetch_factor,
             persistent_workers=True,
         )
 
