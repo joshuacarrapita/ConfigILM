@@ -5,7 +5,7 @@ from typing import List
 from typing import Sequence
 
 import torch
-import torchvision.transforms.functional as TF
+import torchvision.transforms.v2.functional as TF
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 
