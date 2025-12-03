@@ -104,7 +104,7 @@ class BENv2DataSet(Dataset):
             used to identify the function of the file. The required keys are:
             "images_lmdb", "metadata_parquet", "metadata_snow_cloud_parquet".
 
-        :param split: The name of the split to use. Can be either "train", "val" or
+        :param split: The name of the split to use. Can be either "train", "validation" or
             "test". If None is provided, all splits are used.
 
             :default: None
@@ -177,28 +177,23 @@ class BENv2DataSet(Dataset):
         if split is not None and bagging is not True:
             metadata = metadata[metadata["split"] == split]
         if split is not None and bagging is True:
-            if split == "train" or split == "validation":
-                # remove test samples
-                metadata = metadata[metadata["split"] != "test"]
-                if __debug__: 
-                    print(f'Length metadata: {len(metadata)}')
-                if split == "train":
-                    # if split is train random sample from whole dataset
-                    metadata = metadata.sample(n=len(metadata), replace=True, random_state=seed)
-                    # and set the split column accordingly
-                    metadata["split"] = "train"
-                    Messages.info(f"    {len(metadata)} training patches generated with bagging")
-                else: 
-                    # if split is validation retrieve only out-of-bag samples
-                    metadata_in_bag = metadata.sample(n=len(metadata), replace=True, random_state=seed)
-                    metadata = pd.concat([metadata, metadata_in_bag])
-                    metadata = metadata.drop_duplicates(subset='patch_id', keep=False)
-                    # and set the split column accordingly
-                    metadata["split"] = "validation"
-                    Messages.info(f"    {len(metadata)} validation patches generated with bagging")
-            else: 
-                metadata = metadata[metadata["split"] == split]
-                Messages.info(f"    {len(metadata)} test patches generated with bagging")
+            metadata = metadata[metadata["split"] == split]
+            if split == "train":
+                # if split is train random sample from whole dataset
+                metadata = metadata.sample(n=len(metadata), replace=True, random_state=seed)
+                Messages.info(f"    {len(metadata)} training patches generated with bagging")
+        if split is None and bagging is True:
+            metadata_val_test = metadata[~(metadata["split"] == "train")]
+
+            # if split is train random sample from whole dataset
+            metadata_train = metadata[metadata["split"] == "train"]
+            metadata_train = metadata_train.sample(n=len(metadata_train), replace=True, random_state=seed)
+
+            metadata = pd.concat([metadata_train, metadata_val_test], ignore_index=True)
+            Messages.info(f"    {len(metadata_train)} training patches generated with bagging")
+
+
+
         if __debug__: 
             pd.set_option('display.max_rows', 20)
             pd.set_option('display.max_columns', None)
