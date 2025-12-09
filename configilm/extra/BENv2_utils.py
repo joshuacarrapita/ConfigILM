@@ -451,7 +451,22 @@ def ben_19_labels_to_multi_hot_np(labels: Iterable[str], lex_sorted: bool = True
     multi_hot[idxs] = 1.0
     return multi_hot
 
+def multi_hot_to_ben_19_labels(multi_hot, lex_sorted: bool = True) -> Iterable[str]:
+    """
+    Convenience function that converts an input of a multi-hot encoded vector into an iterable of labels.
+    If `lex_sorted` is True (default) the classes are lexigraphically ordered, as they are
+    in `constants.NEW_LABELS`.
+    If `lex_sorted` is False, the original order from the BigEarthNet paper is used, as
+    they are given in `constants.NEW_LABELS_ORIGINAL_ORDER`.
+    """
 
+    if isinstance(multi_hot, torch.Tensor):
+        multi_hot = multi_hot.detach().cpu().numpy()
+
+    idx2val = NEW_LABELS if lex_sorted else NEW_LABELS_ORIGINAL_ORDER
+    indices = np.where(multi_hot == 1)[0]
+    return [idx2val[i] for i in indices]
+    
 def resolve_data_dir(
     data_dir: Optional[Mapping[str, Path]], allow_mock: bool = False, force_mock: bool = False
 ) -> Mapping[str, Path]:
