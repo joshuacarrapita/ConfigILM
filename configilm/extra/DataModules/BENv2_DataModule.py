@@ -27,7 +27,6 @@ from configilm.util import Messages
 
 
 class BENv2DataModule(pl.LightningDataModule):
-    num_classes = 19
     train_ds: Union[None, BENv2DataSet] = None
     val_ds: Union[None, BENv2DataSet] = None
     test_ds: Union[None, BENv2DataSet] = None
