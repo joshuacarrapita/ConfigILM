@@ -399,6 +399,27 @@ NEW_LABELS = sorted(NEW_LABELS_ORIGINAL_ORDER)
 _val2idx_new_labels = {x: NEW_LABELS.index(x) for x in NEW_LABELS}
 _val2idx_new_labels_original_order = {x: NEW_LABELS_ORIGINAL_ORDER.index(x) for x in NEW_LABELS_ORIGINAL_ORDER}
 
+NEW_LABELS_16_ORIGINAL_ORDER = (
+    "Urban fabric",
+    "Arable land",
+    "Permanent crops",
+    "Pastures",
+    "Complex cultivation patterns",
+    "Land principally occupied by agriculture, with significant areas of natural vegetation",
+    "Agro-forestry areas",
+    "Broad-leaved forest",
+    "Coniferous forest",
+    "Mixed forest",
+    "Natural grassland and sparsely vegetated areas",
+    "Moors, heathland and sclerophyllous vegetation",
+    "Transitional woodland, shrub",
+    "Inland wetlands",
+    "Inland waters",
+    "Marine waters",
+)
+NEW_LABELS_16 = sorted(NEW_LABELS_16_ORIGINAL_ORDER)
+_val2idx_new_labels_16 = {x: NEW_LABELS_16.index(x) for x in NEW_LABELS_16}
+_val2idx_new_labels_16_original_order = {x: NEW_LABELS_16_ORIGINAL_ORDER.index(x) for x in NEW_LABELS_16_ORIGINAL_ORDER}
 
 def stack_and_interpolate(
     bands: Dict[str, np.ndarray],
@@ -467,6 +488,29 @@ def multi_hot_to_ben_19_labels(multi_hot, lex_sorted: bool = True) -> Iterable[s
     indices = np.where(multi_hot == 1)[0]
     return [idx2val[i] for i in indices]
     
+def ben_16_labels_to_multi_hot(labels: Iterable[str], lex_sorted: bool = True) -> torch.Tensor:
+    return torch.from_numpy(ben_16_labels_to_multi_hot_np(labels, lex_sorted))
+
+def ben_16_labels_to_multi_hot_np(labels: Iterable[str], lex_sorted: bool = True) -> np.array:
+    """
+    Convenience function that converts an input iterable of labels into
+    a multi-hot encoded vector.
+    If `lex_sorted` is True (default) the classes are lexigraphically ordered, as they are
+    in `constants.NEW_LABELS_16`.
+    If `lex_sorted` is False, the original order from the BigEarthNet paper is used, as
+    they are given in `constants.NEW_LABELS_16_ORIGINAL_ORDER`.
+
+    If an unknown label is given, a `KeyError` is raised.
+
+    Be aware that this approach assumes that **all** labels are actually used in the dataset!
+    This is not necessarily the case if you are using a subset!
+    """
+    lbls_to_idx = _val2idx_new_labels_16 if lex_sorted else _val2idx_new_labels_16_original_order
+    idxs = [lbls_to_idx[label] for label in labels]
+    multi_hot = np.zeros(len(NEW_LABELS_16))
+    multi_hot[idxs] = 1.0
+    return multi_hot
+
 def resolve_data_dir(
     data_dir: Optional[Mapping[str, Path]], allow_mock: bool = False, force_mock: bool = False
 ) -> Mapping[str, Path]:

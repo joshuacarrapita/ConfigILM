@@ -16,7 +16,7 @@ from typing import Union
 import pandas as pd
 from torch.utils.data import Dataset
 
-from configilm.extra.BENv2_utils import ben_19_labels_to_multi_hot
+from configilm.extra.BENv2_utils import ben_16_labels_to_multi_hot
 from configilm.extra.BENv2_utils import BENv2LDMBReader
 from configilm.extra.BENv2_utils import stack_and_interpolate
 from configilm.extra.BENv2_utils import STANDARD_BANDS
@@ -222,7 +222,7 @@ class BENv2DataSet(Dataset):
             metadata_snow_cloud_file=data_dirs["metadata_snow_cloud_parquet"],
             bands=self.channel_order,
             process_bands_fn=partial(stack_and_interpolate, img_size=h, upsample_mode="nearest"),
-            process_labels_fn=ben_19_labels_to_multi_hot,
+            process_labels_fn=ben_16_labels_to_multi_hot,
         )
 
     def get_patchname_from_index(self, idx: int) -> Optional[str]:
