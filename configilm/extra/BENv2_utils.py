@@ -395,9 +395,6 @@ NEW_LABELS_ORIGINAL_ORDER = (
     "Inland waters",
     "Marine waters",
 )
-NEW_LABELS = sorted(NEW_LABELS_ORIGINAL_ORDER)
-_val2idx_new_labels = {x: NEW_LABELS.index(x) for x in NEW_LABELS}
-_val2idx_new_labels_original_order = {x: NEW_LABELS_ORIGINAL_ORDER.index(x) for x in NEW_LABELS_ORIGINAL_ORDER}
 
 NEW_LABELS_16_ORIGINAL_ORDER = (
     "Urban fabric",
@@ -417,6 +414,11 @@ NEW_LABELS_16_ORIGINAL_ORDER = (
     "Inland waters",
     "Marine waters",
 )
+
+NEW_LABELS = sorted(NEW_LABELS_ORIGINAL_ORDER)
+_val2idx_new_labels = {x: NEW_LABELS.index(x) for x in NEW_LABELS}
+_val2idx_new_labels_original_order = {x: NEW_LABELS_ORIGINAL_ORDER.index(x) for x in NEW_LABELS_ORIGINAL_ORDER}
+
 NEW_LABELS_16 = sorted(NEW_LABELS_16_ORIGINAL_ORDER)
 _val2idx_new_labels_16 = {x: NEW_LABELS_16.index(x) for x in NEW_LABELS_16}
 _val2idx_new_labels_16_original_order = {x: NEW_LABELS_16_ORIGINAL_ORDER.index(x) for x in NEW_LABELS_16_ORIGINAL_ORDER}
