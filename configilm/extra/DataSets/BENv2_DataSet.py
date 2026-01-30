@@ -109,14 +109,11 @@ class BENv2DataSet(Dataset):
 
             :default: None
 
-        :param bagging: If true, the dataset will be generated in a bagging 
-            manner; splitting the whole dataset into only train and test splits,
-            random sampling from the train split to generate the train dataset
-            using the out-of-bag samples as the validation set and testing on 
-            the previously chosen test split.
+        :param bagging: If True, applies bootstrap sampling (with replacement) to the 'train' split. 
+            Validation and test splits are returned without sampling. 
 
             :default: False
-
+        
         :param seed: Random seed for bagging for reproducibility, default is 42.
 
             :default: 42
